@@ -25,8 +25,15 @@ exports.getUser = async (req, res, next) => {
 };
 
 exports.createUser = async (req, res, next) => {
-
   try {
+    
+    if (req.body.role === 'Admin') {
+      const existingAdmin = await User.findOne({ role: 'Admin' });
+      if (existingAdmin) {
+        return next(new ErrorResponse('Only one Admin is allowed in the system', 400));
+      }
+    }
+
     const user = await User.create(req.body);
     res.status(201).json({ success: true, data: user });
   } catch (err) {
@@ -35,8 +42,21 @@ exports.createUser = async (req, res, next) => {
 };
 
 
+
 exports.updateUser = async (req, res, next) => {
   try {
+  
+    if (req.body.password) {
+      delete req.body.password;
+    }
+
+    if (req.body.role === 'Admin') {
+      const existingAdmin = await User.findOne({ role: 'Admin' });
+      if (existingAdmin && existingAdmin._id.toString() !== req.params.id) {
+        return next(new ErrorResponse('Only one Admin is allowed in the system', 400));
+      }
+    }
+
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -45,11 +65,13 @@ exports.updateUser = async (req, res, next) => {
     if (!user) {
       return next(new ErrorResponse(`No user with the id of ${req.params.id}`, 404));
     }
+
     res.status(200).json({ success: true, data: user });
   } catch (err) {
     next(err);
   }
 };
+
 
 
 exports.deleteUser = async (req, res, next) => {

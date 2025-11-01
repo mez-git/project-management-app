@@ -28,6 +28,7 @@ import React from 'react';
       const navItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
         { text: 'Projects', icon: <FolderIcon />, path: '/projects' },
+          { text: 'Change Password', icon: <FolderIcon />, path: '/change-password' },
       ];
 
       if (hasRole('Admin')) {

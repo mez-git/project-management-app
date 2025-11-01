@@ -11,7 +11,7 @@ import React from 'react';
     import TaskDetailsPage from './pages/TaskDetailsPage';
     import UserManagementPage from './pages/UserManagementPage'; 
     import NotFoundPage from './pages/NotFoundPage'; 
-
+    import ChangePassword from './pages/ChangePassword'
     import Layout from './components/Layout'; 
 
     
@@ -38,7 +38,7 @@ import React from 'react';
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
+               {/* <Route path="/register" element={<RegisterPage />} /> */}
 
                 <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
                   <Route index element={<DashboardPage />} />
@@ -46,6 +46,7 @@ import React from 'react';
                   <Route path="projects/:id" element={<ProjectDetailsPage />} />
                   <Route path="tasks/:id" element={<TaskDetailsPage />} />
                   <Route path="users" element={<UserManagementPage />} /> 
+                   <Route path="change-password" element={<ChangePassword />} /> 
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />

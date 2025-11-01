@@ -78,3 +78,47 @@ const sendTokenResponse = (user, statusCode, res) => {
       },
     });
 };
+
+
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return next(new ErrorResponse('Please provide both current and new password', 400));
+    }
+
+    // Find the logged-in user (req.user.id comes from auth middleware)
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user) {
+      return next(new ErrorResponse('User not found', 404));
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return next(new ErrorResponse('Current password is incorrect', 401));
+    }
+
+  
+    user.password = newPassword;
+    await user.save();
+
+   
+    const token = user.getSignedJwtToken();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
