@@ -9,12 +9,12 @@ import React from 'react';
     import ProjectListPage from './pages/ProjectListPage';
     import ProjectDetailsPage from './pages/ProjectDetailsPage';
     import TaskDetailsPage from './pages/TaskDetailsPage';
-    import UserManagementPage from './pages/UserManagementPage'; // Admin only
-    import NotFoundPage from './pages/NotFoundPage'; // Generic 404
+    import UserManagementPage from './pages/UserManagementPage'; 
+    import NotFoundPage from './pages/NotFoundPage'; 
 
-    import Layout from './components/Layout'; // Or DashboardLayout
+    import Layout from './components/Layout'; 
 
-    // Material UI Theme (if using)
+    
     import { ThemeProvider, createTheme } from '@mui/material/styles';
     import CssBaseline from '@mui/material/CssBaseline';
 
@@ -33,7 +33,7 @@ import React from 'react';
     function App() {
       return (
         <ThemeProvider theme={theme}>
-          <CssBaseline /> {/* Resets CSS for Material UI */}
+          <CssBaseline /> 
           <Router>
             <AuthProvider>
               <Routes>
@@ -45,7 +45,7 @@ import React from 'react';
                   <Route path="projects" element={<ProjectListPage />} />
                   <Route path="projects/:id" element={<ProjectDetailsPage />} />
                   <Route path="tasks/:id" element={<TaskDetailsPage />} />
-                  <Route path="users" element={<UserManagementPage />} /> {/* Admin only */}
+                  <Route path="users" element={<UserManagementPage />} /> 
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
