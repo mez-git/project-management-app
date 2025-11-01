@@ -11,6 +11,8 @@ app.use(cors());         // Enable CORS for frontend
 app.use(morgan('dev'));  // Request logging
 
 // Routes
+
+app.use('/api', require('./routes/testEmail'));
 app.use('/api/v1/auth', require('./routes/authRoutes'));
 app.use('/api/v1/users', require('./routes/userRoutes'));
 app.use('/api/v1/projects', require('./routes/projectRoutes'));
