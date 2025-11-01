@@ -4,7 +4,7 @@ const User = require('../models/User');
 const ActivityLog = require('../models/ActivityLog');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail'); 
-
+const { createTaskNotifications } = require('../utils/notifyUsers');
 
 const notifyUsersAboutTask = async (task, project, action, details) => {
   try {
@@ -42,7 +42,7 @@ const notifyUsersAboutTask = async (task, project, action, details) => {
   }
 };
 
-// 📍 GET: All tasks for a project
+
 exports.getProjectTasks = async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -68,7 +68,7 @@ exports.getProjectTasks = async (req, res, next) => {
   }
 };
 
-// 📍 GET: Single task by ID
+
 exports.getTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id)
@@ -147,7 +147,7 @@ exports.updateTask = async (req, res, next) => {
       return next(new ErrorResponse(`Not authorized to update this task`, 403));
     }
 
-    // Restrict team members from changing sensitive fields
+ 
     if (req.user.role === 'Team Member' && !isAdmin && !isManager) {
       const allowedUpdates = ['status', 'description'];
       const filtered = {};
@@ -184,14 +184,13 @@ exports.updateTask = async (req, res, next) => {
     await ActivityLog.create({ project: project._id, user: req.user.id, action: 'Task Updated', details });
 
     await notifyUsersAboutTask(task, project, 'Task Updated', details);
-
+await createTaskNotifications(task, task.project, 'Task Deleted', details);
     res.status(200).json({ success: true, data: task });
   } catch (err) {
     next(err);
   }
 };
 
-// 📍 DELETE: Delete a task
 exports.deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id).populate('project', 'projectManager');
@@ -210,7 +209,7 @@ exports.deleteTask = async (req, res, next) => {
     await ActivityLog.create({ project: task.project._id, user: req.user.id, action: 'Task Deleted', details });
 
     await notifyUsersAboutTask(task, task.project, 'Task Deleted', details);
-
+await createTaskNotifications(task, task.project, 'Task Deleted', details);
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
     next(err);

@@ -4,8 +4,10 @@ const User = require('../models/User'); // To add/remove team members
 const ActivityLog = require('../models/ActivityLog'); // For bonus
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail'); // ✅ Email utility
+const { createTaskNotifications } = require('../utils/notifyUsers');
 
-// 📩 Helper: Notify all relevant users about a task event
+
+
 const notifyUsersAboutTask = async (task, project, action, details) => {
   try {
     const manager = await User.findById(project.projectManager);
@@ -298,7 +300,7 @@ exports.createTask = async (req, res, next) => {
     await ActivityLog.create({ project: project._id, user: req.user.id, action: 'Task Created', details });
 
     await notifyUsersAboutTask(task, project, 'Task Created', details);
-
+await createTaskNotifications(task, task.project, 'Task Deleted', details);
     res.status(201).json({ success: true, data: task });
   } catch (err) {
     next(err);

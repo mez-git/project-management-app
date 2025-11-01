@@ -14,8 +14,8 @@ import React from 'react';
     import ChangePassword from './pages/ChangePassword'
     import Layout from './components/Layout'; 
     import  EditProjectPage from './pages/EditProjectPage'; 
+    import NotificationsPage from './pages/NotificationsPage';
   
-    
     import { ThemeProvider, createTheme } from '@mui/material/styles';
     import CssBaseline from '@mui/material/CssBaseline';
 
@@ -49,6 +49,7 @@ import React from 'react';
                   <Route path="users" element={<UserManagementPage />} /> 
                   <Route path="/projects/:id/edit"  element={<EditProjectPage/>}/>
                    <Route path="change-password" element={<ChangePassword />} /> 
+                   <Route path="notifications" element={<NotificationsPage />} />
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />

@@ -1,6 +1,7 @@
 import React from 'react';
     import { Outlet } from 'react-router-dom';
     import { useAuth } from '../auth/AuthContext';
+    import Notifications from './Notifications';
     import {
       AppBar,
       Toolbar,
@@ -42,6 +43,7 @@ import React from 'react';
               <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                 Project Management
               </Typography>
+               <Notifications />
               <Typography variant="subtitle1" sx={{ mr: 2 }}>
                 Hello, {user?.name} ({user?.role})
               </Typography>
