@@ -62,21 +62,37 @@ exports.getProject = async (req, res, next) => {
 };
 
 exports.createProject = async (req, res, next) => {
-  req.body.projectManager = req.user.id;
-
   try {
+
+    if (req.user.role === 'Admin') {
+      if (!req.body.projectManager) {
+        return next(new ErrorResponse('Admin must specify a project manager.', 400));
+      }
+
+      const manager = await User.findById(req.body.projectManager);
+      if (!manager || manager.role !== 'Project Manager') {
+        return next(new ErrorResponse('Invalid Project Manager selected.', 400));
+      }
+    } else {
+   
+      req.body.projectManager = req.user.id;
+    }
+
     const project = await Project.create(req.body);
+
     await ActivityLog.create({
       project: project._id,
       user: req.user.id,
       action: 'Project Created',
       details: `Project "${project.name}" was created.`
     });
+
     res.status(201).json({ success: true, data: project });
   } catch (err) {
     next(err);
   }
 };
+
 
 
 exports.updateProject = async (req, res, next) => {

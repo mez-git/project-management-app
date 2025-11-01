@@ -13,7 +13,8 @@ import React from 'react';
     import NotFoundPage from './pages/NotFoundPage'; 
     import ChangePassword from './pages/ChangePassword'
     import Layout from './components/Layout'; 
-
+    import  EditProjectPage from './pages/EditProjectPage'; 
+  
     
     import { ThemeProvider, createTheme } from '@mui/material/styles';
     import CssBaseline from '@mui/material/CssBaseline';
@@ -38,7 +39,7 @@ import React from 'react';
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-               {/* <Route path="/register" element={<RegisterPage />} /> */}
+               <Route path="/register" element={<RegisterPage />} />
 
                 <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
                   <Route index element={<DashboardPage />} />
@@ -46,6 +47,7 @@ import React from 'react';
                   <Route path="projects/:id" element={<ProjectDetailsPage />} />
                   <Route path="tasks/:id" element={<TaskDetailsPage />} />
                   <Route path="users" element={<UserManagementPage />} /> 
+                  <Route path="/projects/:id/edit"  element={<EditProjectPage/>}/>
                    <Route path="change-password" element={<ChangePassword />} /> 
                 </Route>
 

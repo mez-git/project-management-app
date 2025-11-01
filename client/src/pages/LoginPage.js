@@ -79,13 +79,13 @@
               >
                 {loading ? <CircularProgress size={24} /> : 'Sign In'}
               </Button>
-              {/* <Box display="flex" justifyContent="flex-end">
+              <Box display="flex" justifyContent="flex-end">
                 <Link to="/register" style={{ textDecoration: 'none' }}>
                   <Typography variant="body2" color="primary">
                     Don't have an account? Sign Up
                   </Typography>
                 </Link>
-              </Box> */}
+              </Box>
             </Box>
           </Box>
         </Container>

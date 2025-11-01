@@ -4,8 +4,18 @@ const ErrorResponse = require('../utils/errorResponse');
 
 exports.getUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
-    res.status(200).json({ success: true, count: users.length, data: users });
+  
+    const roleFilter = req.query.role ? { role: req.query.role } : {};
+ console.log('Role filter:', roleFilter); 
+    const users = await User.find(roleFilter)
+      .select('name email role')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
   } catch (err) {
     next(err);
   }

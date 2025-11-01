@@ -144,13 +144,13 @@ function UserManagementPage() {
         mb={3}
       >
         <Typography variant="h4">User Management</Typography>
-        <Button
+        {/* <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenCreateUser}
         >
           Add New User
-        </Button>
+        </Button> */}
       </Box>
 
       {users.length === 0 ? (
@@ -163,7 +163,7 @@ function UserManagementPage() {
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Role</TableCell>
-                <TableCell>Created At</TableCell>
+                <TableCell>Joined On</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -216,6 +216,7 @@ function UserManagementPage() {
               setUserFormData({ ...userFormData, name: e.target.value })
             }
             sx={{ mb: 2 }}
+            disabled={!!currentUser}
           />
 
           <TextField
