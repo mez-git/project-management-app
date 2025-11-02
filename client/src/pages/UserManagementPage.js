@@ -1,20 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
-import PrivateRoute from "../auth/PrivateRoute";
 import {
-  Box,
-  Typography,
-  Button,
   CircularProgress,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -24,34 +14,31 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Button,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Info as InfoIcon,
+} from "@mui/icons-material";
 
 function UserManagementPage() {
   const { authApi, hasRole, user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [openUserDialog, setOpenUserDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [userFormData, setUserFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "Team Member",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", role: "" });
 
+  // Fetch all users
   useEffect(() => {
-    if (hasRole("Admin")) {
-      fetchUsers();
-    } else {
+    if (hasRole("Admin")) fetchUsers();
+    else {
       setError("You are not authorized to view this page.");
       setLoading(false);
     }
-  }, [authApi, hasRole]);
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -65,39 +52,23 @@ function UserManagementPage() {
     }
   };
 
-  const handleOpenCreateUser = () => {
-    setCurrentUser(null);
-    setUserFormData({ name: "", email: "", password: "", role: "Team Member" });
-    setOpenUserDialog(true);
-  };
-
-  const handleOpenEditUser = (user) => {
+  const handleOpenEdit = (user) => {
     setCurrentUser(user);
-    setUserFormData({
+    setFormData({
       name: user.name,
       email: user.email,
-      password: "",
       role: user.role,
     });
-    setOpenUserDialog(true);
+    setOpenEditDialog(true);
   };
 
-  const handleSaveUser = async () => {
+  const handleUpdateUser = async () => {
     try {
-      if (currentUser) {
-        const updateData = { ...userFormData };
-        delete updateData.password;
-        await authApi.put(`/users/${currentUser._id}`, updateData);
-      } else {
-        await authApi.post("/users", userFormData);
-      }
-      setOpenUserDialog(false);
+      await authApi.put(`/users/${currentUser._id}`, formData);
       fetchUsers();
+      setOpenEditDialog(false);
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          `Failed to ${currentUser ? "update" : "create"} user.`
-      );
+      setError(err.response?.data?.error || "Failed to update user.");
     }
   };
 
@@ -112,181 +83,239 @@ function UserManagementPage() {
     }
   };
 
-  if (!hasRole("Admin")) {
-    return (
-      <Alert severity="error">You are not authorized to view this page.</Alert>
-    );
-  }
-
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="calc(100vh - 64px)"
-      >
+      <div className="flex justify-center items-center h-[calc(100vh-64px)]">
         <CircularProgress />
-      </Box>
+      </div>
     );
-  }
-
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
   }
 
   return (
-    <Box>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Typography variant="h4">User Management</Typography>
-        {/* <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenCreateUser}
-        >
-          Add New User
-        </Button> */}
-      </Box>
+    <div className="p-4 md:p-8">
+  
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
+          User Management
+        </h1>
+      </div>
 
-      {users.length === 0 ? (
-        <Typography>No users found.</Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Joined On</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((userItem) => (
-                <TableRow key={userItem._id}>
-                  <TableCell>{userItem.name}</TableCell>
-                  <TableCell>{userItem.email}</TableCell>
-                  <TableCell>{userItem.role}</TableCell>
-                  <TableCell>
-                    {new Date(userItem.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={() => handleOpenEditUser(userItem)}
-                      color="secondary"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    {userItem._id !== user._id && (
-                      <IconButton
-                        onClick={() => handleDeleteUser(userItem._id)}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+  
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          onClose={() => setError("")}
+          className="w-full md:w-3/4 lg:w-1/2"
+        >
+          {error}
+        </Alert>
       )}
 
-      <Dialog open={openUserDialog} onClose={() => setOpenUserDialog(false)}>
-        <DialogTitle>
-          {currentUser ? "Edit User" : "Create New User"}
-        </DialogTitle>
+  
+      {users.length === 0 ? (
+        <p className="text-gray-600">No users found.</p>
+      ) : (
+        <>
+     
+          <div className="hidden md:block overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+            <table className="min-w-full text-sm text-left text-gray-700">
+              <thead className="bg-gray-100 text-gray-900 font-medium">
+                <tr>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Joined On</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr
+                    key={u._id}
+                    className="border-t hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-semibold">{u.name}</td>
+                    <td className="px-4 py-3">{u.email}</td>
+                    <td className="px-4 py-3">{u.role}</td>
+                    <td className="px-4 py-3">
+                      {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <Tooltip title="User Info">
+                          <IconButton
+                            size="small"
+                            sx={{
+                              backgroundColor: "rgba(25,118,210,0.08)",
+                              "&:hover": {
+                                backgroundColor: "rgba(25,118,210,0.15)",
+                              },
+                            }}
+                          >
+                            <InfoIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Edit User">
+                          <IconButton
+                            onClick={() => handleOpenEdit(u)}
+                            size="small"
+                            sx={{
+                              backgroundColor: "rgba(156,39,176,0.08)",
+                              "&:hover": {
+                                backgroundColor: "rgba(156,39,176,0.15)",
+                              },
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+
+                        {u._id !== user._id && (
+                          <Tooltip title="Delete User">
+                            <IconButton
+                              onClick={() => handleDeleteUser(u._id)}
+                              size="small"
+                              sx={{
+                                backgroundColor: "rgba(211,47,47,0.08)",
+                                "&:hover": {
+                                  backgroundColor: "rgba(211,47,47,0.15)",
+                                },
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+   
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
+            {users.map((u) => (
+              <div
+                key={u._id}
+                className="border border-gray-200 rounded-xl shadow-sm p-4 bg-white hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h2 className="font-semibold text-lg text-gray-800">
+                    {u.name}
+                  </h2>
+                  <div className="flex gap-1">
+                    <Tooltip title="User Info">
+                      <IconButton
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(25,118,210,0.08)",
+                          "&:hover": {
+                            backgroundColor: "rgba(25,118,210,0.15)",
+                          },
+                        }}
+                      >
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Edit User">
+                      <IconButton
+                        onClick={() => handleOpenEdit(u)}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(156,39,176,0.08)",
+                          "&:hover": {
+                            backgroundColor: "rgba(156,39,176,0.15)",
+                          },
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    {u._id !== user._id && (
+                      <Tooltip title="Delete User">
+                        <IconButton
+                          onClick={() => handleDeleteUser(u._id)}
+                          size="small"
+                          sx={{
+                            backgroundColor: "rgba(211,47,47,0.08)",
+                            "&:hover": {
+                              backgroundColor: "rgba(211,47,47,0.15)",
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm mb-2">{u.email}</p>
+                <p className="text-gray-500 text-xs mb-1">
+                  Role:{" "}
+                  <span className="text-gray-800 font-medium">{u.role}</span>
+                </p>
+                <p className="text-gray-400 text-xs">
+                  Joined: {new Date(u.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+
+      <Dialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Edit User</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={userFormData.name}
-            onChange={(e) =>
-              setUserFormData({ ...userFormData, name: e.target.value })
-            }
-            sx={{ mb: 2 }}
-            disabled={!!currentUser}
-          />
-
-          <TextField
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={userFormData.email}
-            onChange={(e) =>
-              setUserFormData({ ...userFormData, email: e.target.value })
-            }
-            sx={{ mb: 2 }}
-            disabled={!!currentUser}
-          />
-
-          {!currentUser && (
+          <div className="flex flex-col gap-4 mt-2">
             <TextField
-              margin="dense"
-              label="Password"
-              type="password"
-              fullWidth
+              label="Name"
               variant="outlined"
-              value={userFormData.password}
-              onChange={(e) =>
-                setUserFormData({ ...userFormData, password: e.target.value })
-              }
-              sx={{ mb: 2 }}
+              value={formData.name}
+              disabled
+              fullWidth
             />
-          )}
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={userFormData.role}
-              label="Role"
-              onChange={(e) =>
-                setUserFormData({ ...userFormData, role: e.target.value })
-              }
-            >
-              <MenuItem
-                value="Admin"
-                disabled={
-                  users.some((u) => u.role === "Admin") &&
-                  (!currentUser || currentUser.role !== "Admin")
+            <TextField
+              label="Email"
+              variant="outlined"
+              value={formData.email}
+              disabled
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={formData.role}
+                label="Role"
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
                 }
               >
-                Admin
-              </MenuItem>
-              <MenuItem value="Project Manager">Project Manager</MenuItem>
-              <MenuItem value="Team Member">Team Member</MenuItem>
-            </Select>
-          </FormControl>
+                <MenuItem value="Admin">Admin</MenuItem>
+                <MenuItem value="Project Manager">Project Manager</MenuItem>
+                <MenuItem value="Team Member">Team Member</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
         </DialogContent>
-
         <DialogActions>
-          <Button onClick={() => setOpenUserDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveUser} variant="contained">
-            {currentUser ? "Update User" : "Create User"}
+          <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleUpdateUser}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 }
 
-const ProtectedUserManagementPage = () => (
-  <PrivateRoute allowedRoles={["Admin"]}>
-    <UserManagementPage />
-  </PrivateRoute>
-);
-
-export default ProtectedUserManagementPage;
+export default UserManagementPage;

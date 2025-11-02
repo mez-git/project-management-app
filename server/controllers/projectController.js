@@ -14,7 +14,7 @@ const notifyUsersAboutTask = async (task, project, action, details) => {
     const assignedUser = task.assignedTo ? await User.findById(task.assignedTo) : null;
     const admins = await User.find({ role: 'Admin' });
 
-    // Collect unique recipient emails
+
     const recipients = new Set();
     if (manager) recipients.add(manager.email);
     if (assignedUser) recipients.add(assignedUser.email);
@@ -134,30 +134,42 @@ exports.createProject = async (req, res, next) => {
 };
 
 
-
 exports.updateProject = async (req, res, next) => {
   try {
     let project = await Project.findById(req.params.id);
-
     if (!project) {
       return next(new ErrorResponse(`No project with the id of ${req.params.id}`, 404));
     }
 
-    if (project.projectManager.toString() !== req.user.id && req.user.role !== 'Admin') {
+    if (project.projectManager.toString() !== req.user.id && req.user.role !== "Admin") {
       return next(new ErrorResponse(`User ${req.user.id} is not authorized to update project ${req.params.id}`, 403));
     }
+
+  
+    const oldStatus = project.status;
 
     project = await Project.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
-    await ActivityLog.create({
-      project: project._id,
-      user: req.user.id,
-      action: 'Project Updated',
-      details: `Project "${project.name}" details updated.`
-    });
+    if (req.body.status === "Completed" && oldStatus !== "Completed") {
+      await Task.updateMany({ project: project._id }, { status: "Done" });
+
+      await ActivityLog.create({
+        project: project._id,
+        user: req.user.id,
+        action: "Project Completed",
+        details: `Project "${project.name}" marked as Completed. All associated tasks marked as Done.`,
+      });
+    } else {
+      await ActivityLog.create({
+        project: project._id,
+        user: req.user.id,
+        action: "Project Updated",
+        details: `Project "${project.name}" details updated.`,
+      });
+    }
 
     res.status(200).json({ success: true, data: project });
   } catch (err) {
@@ -280,32 +292,47 @@ exports.createTask = async (req, res, next) => {
 
   try {
     const project = await Project.findById(req.params.projectId);
-    if (!project) return next(new ErrorResponse(`No project found with ID ${req.params.projectId}`, 404));
+    if (!project)
+      return next(new ErrorResponse(`No project found with ID ${req.params.projectId}`, 404));
 
-    if (project.projectManager.toString() !== req.user.id && req.user.role !== 'Admin') {
-      return next(new ErrorResponse(`Not authorized to add tasks to this project`, 403));
+    if (project.status === "Completed") {
+      return next(new ErrorResponse("Cannot create tasks for a completed project.", 400));
+    }
+
+
+    if (project.projectManager.toString() !== req.user.id && req.user.role !== "Admin") {
+      return next(new ErrorResponse("Not authorized to add tasks to this project", 403));
     }
 
     if (req.body.assignedTo) {
       const assignedUser = await User.findById(req.body.assignedTo);
-      if (!assignedUser) return next(new ErrorResponse(`Assigned user not found`, 404));
+      if (!assignedUser) return next(new ErrorResponse("Assigned user not found", 404));
       if (!project.teamMembers.includes(req.body.assignedTo)) {
-        return next(new ErrorResponse(`User is not a team member of this project`, 400));
+        return next(new ErrorResponse("User is not a team member of this project", 400));
       }
     }
 
     const task = await Task.create(req.body);
 
-    const details = `Task "${task.title}" created and assigned to ${task.assignedTo ? (await User.findById(task.assignedTo)).name : 'Unassigned'}.`;
-    await ActivityLog.create({ project: project._id, user: req.user.id, action: 'Task Created', details });
+    const details = `Task "${task.title}" created and assigned to ${
+      task.assignedTo ? (await User.findById(task.assignedTo)).name : "Unassigned"
+    }.`;
 
-    await notifyUsersAboutTask(task, project, 'Task Created', details);
-await createTaskNotifications(task, task.project, 'Task Deleted', details);
+    await ActivityLog.create({
+      project: project._id,
+      user: req.user.id,
+      action: "Task Created",
+      details,
+    });
+
+    await notifyUsersAboutTask(task, project, "Task Created", details);
+
     res.status(201).json({ success: true, data: task });
   } catch (err) {
     next(err);
   }
 };
+
 
 // exports.createTask = async (req, res, next) => {
 //   req.body.project = req.params.projectId;
