@@ -8,7 +8,7 @@ exports.getUsers = async (req, res, next) => {
     const roleFilter = req.query.role ? { role: req.query.role } : {};
  console.log('Role filter:', roleFilter); 
     const users = await User.find(roleFilter)
-      .select('name email role')
+        .select('name email role createdAt')
       .sort({ name: 1 });
 
     res.status(200).json({
