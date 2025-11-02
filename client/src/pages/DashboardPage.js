@@ -28,7 +28,9 @@ function DashboardPage() {
         const res = await authApi.get("/dashboard");
         setDashboardData(res.data.data);
       } catch (err) {
-        setError(err.response?.data?.error || "Failed to fetch dashboard data.");
+        setError(
+          err.response?.data?.error || "Failed to fetch dashboard data."
+        );
       } finally {
         setLoading(false);
       }
@@ -111,7 +113,7 @@ function DashboardPage() {
         </Typography>
       </Box>
 
-      {/* Overview cards */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <Card
           onClick={() => navigate("/projects")}
@@ -149,7 +151,10 @@ function DashboardPage() {
             <Typography variant="h6" className="text-gray-500">
               Completed Tasks
             </Typography>
-            <Typography variant="h4" className="font-bold text-emerald-600 mt-2">
+            <Typography
+              variant="h4"
+              className="font-bold text-emerald-600 mt-2"
+            >
               {completedTasks}
             </Typography>
             <Typography className="text-sm text-gray-500 mt-1">
@@ -159,43 +164,48 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Activity */}
+    
       <Box className="mb-12">
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
-          Recent Team Activity
+          Recent Activity
         </Typography>
+
         {recentActivities?.length > 0 ? (
-          <List className="bg-white rounded-xl shadow-md divide-y">
-            {recentActivities.map((activity, index) => (
-              <React.Fragment key={activity._id}>
-                <ListItem alignItems="flex-start" className="p-4">
-                  <ListItemText
-                    primary={
-                      <span className="font-medium text-gray-800">
-                        {activity.action}
-                      </span>
-                    }
-                    secondary={
-                      <span className="text-gray-600 text-sm">
-                        <strong>{activity.user?.name || "Unknown User"}</strong>{" "}
-                        — {activity.details} •{" "}
-                        {new Date(activity.createdAt).toLocaleString()}
-                      </span>
-                    }
-                  />
-                </ListItem>
-                {index < recentActivities.length - 1 && <Divider component="li" />}
-              </React.Fragment>
+          <Box className="bg-white rounded-xl shadow p-4">
+            {recentActivities.slice(0, 5).map((activity) => (
+              <Box
+                key={activity._id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 py-3 last:border-0"
+              >
+                <Typography className="text-gray-800 font-medium">
+                  {activity.action}
+                </Typography>
+                <Typography className="text-gray-500 text-sm mt-1 sm:mt-0">
+                  {activity.user?.name || "Unknown User"} •{" "}
+                  {new Date(activity.createdAt).toLocaleDateString()}
+                </Typography>
+              </Box>
             ))}
-          </List>
+
+            {recentActivities.length > 5 && (
+              <Box className="flex justify-center mt-4">
+                <button
+                  onClick={() => navigate("/activities")}
+                  className="text-blue-600 text-sm font-medium hover:underline"
+                >
+                  See more →
+                </button>
+              </Box>
+            )}
+          </Box>
         ) : (
-          <Typography className="text-gray-600 mt-4">
-            No recent activity from your team.
+          <Typography className="text-gray-600 mt-2">
+            No recent activity.
           </Typography>
         )}
       </Box>
 
-      {/* Projects Section */}
+  
       <Box className="mb-12">
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
           📁 {projectLabel}
@@ -221,7 +231,9 @@ function DashboardPage() {
                     </Typography>
                     <Chip
                       label={project.status}
-                      className={`${getStatusColor(project.status)} text-xs px-2 py-1`}
+                      className={`${getStatusColor(
+                        project.status
+                      )} text-xs px-2 py-1`}
                     />
                   </div>
                 </CardContent>
@@ -235,7 +247,6 @@ function DashboardPage() {
         )}
       </Box>
 
-      {/* Tasks Section */}
       <Box>
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
           ✅ {taskLabel}
@@ -261,7 +272,9 @@ function DashboardPage() {
                   </div>
                   <Chip
                     label={task.status}
-                    className={`${getStatusColor(task.status)} mt-2 sm:mt-0 text-xs px-2 py-1`}
+                    className={`${getStatusColor(
+                      task.status
+                    )} mt-2 sm:mt-0 text-xs px-2 py-1`}
                   />
                 </div>
               </ListItem>
