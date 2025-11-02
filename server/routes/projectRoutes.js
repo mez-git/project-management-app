@@ -20,7 +20,7 @@ router.use(protect);
 
 router.route('/:projectId/tasks').get(getProjectTasks);
 
-router.route('/:projectId/activity-logs').get(getProjectActivityLogs);
+// router.route('/:projectId/activity-logs').get(getProjectActivityLogs);
 
 
 router.route('/')

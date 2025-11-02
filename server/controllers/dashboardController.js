@@ -93,3 +93,30 @@ exports.getDashboardOverview = async (req, res, next) => {
     next(err);
   }
 };
+exports.getProjectActivityLogs = async (req, res, next) => {
+        try {
+            const project = await Project.findById(req.params.projectId);
+
+            if (!project) {
+                return next(new ErrorResponse(`No project with the id of ${req.params.projectId}`, 404));
+            }
+
+      
+            const isAssigned = project.teamMembers.some(member => member._id.toString() === req.user.id.toString());
+            const isManager = project.projectManager.toString() === req.user.id.toString();
+            const isAdmin = req.user.role === 'Admin';
+
+            if (!isAssigned && !isManager && !isAdmin) {
+                return next(new ErrorResponse(`User ${req.user.id} is not authorized to view activity logs for project ${req.params.projectId}`, 403));
+            }
+
+            const activities = await ActivityLog.find({ project: req.params.projectId })
+                                                .populate('user', 'name email')
+                                                .sort({ createdAt: -1 });
+
+            res.status(200).json({ success: true, count: activities.length, data: activities });
+        } catch (err) {
+            next(err);
+        }
+    };
+    
