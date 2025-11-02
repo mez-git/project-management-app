@@ -9,7 +9,7 @@
       const [loading, setLoading] = useState(true);
       const navigate = useNavigate();
 
-      const API_URL = 'https://project-management-app-1-8540.onrender.com/api/v1';
+      const API_URL = process.env.REACT_APP_API_URL || 'https://project-management-app-1-8540.onrender.com/api/v1';
 
  
       const authApi = axios.create({
