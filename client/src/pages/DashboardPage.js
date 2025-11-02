@@ -127,7 +127,7 @@ function DashboardPage() {
               {projectCount}
             </Typography>
             <Typography className="text-sm text-gray-500 mt-1">
-              Active and archived projects
+              Active 
             </Typography>
           </CardContent>
         </Card>
