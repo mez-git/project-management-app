@@ -40,6 +40,11 @@ function ProjectListPage() {
     projectManager: "",
   });
 
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [sortOption, setSortOption] = useState("date");
+
   useEffect(() => {
     if (hasRole("Admin")) fetchManagers();
     fetchProjects();
@@ -110,6 +115,37 @@ function ProjectListPage() {
     }
   }, [error]);
 
+const filteredProjects = React.useMemo(() => {
+  const filtered = projects.filter((project) => {
+    const search = searchQuery.toLowerCase();
+    const matchesSearch =
+      project.name?.toLowerCase().includes(search) ||
+      project.description?.toLowerCase().includes(search);
+    const matchesStatus =
+      filterStatus === "All" || project.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Use slice() to clone array before sorting to avoid mutating state
+  const sorted = filtered.slice().sort((a, b) => {
+    switch (sortOption) {
+      case "name":
+        return a.name.localeCompare(b.name);
+      case "status":
+        return a.status.localeCompare(b.status);
+      case "manager":
+        return (a.projectManager?.name || "").localeCompare(
+          b.projectManager?.name || ""
+        );
+      case "date":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  return sorted;
+}, [projects, searchQuery, filterStatus, sortOption]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-64px)]">
@@ -120,23 +156,63 @@ function ProjectListPage() {
 
   return (
     <div className="p-4 md:p-8">
-   
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+  
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 flex-wrap">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
           Projects
         </h1>
-        {hasRole(["Admin", "Project Manager"]) && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenCreateDialog(true)}
-          >
-            Create New Project
-          </Button>
-        )}
+
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            placeholder="Search projects..."
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring focus:ring-blue-200 outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          <FormControl size="small" className="min-w-[150px]">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Status"
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="Not Started">Not Started</MenuItem>
+              <MenuItem value="In Progress">In Progress</MenuItem>
+              <MenuItem value="Completed">Completed</MenuItem>
+              <MenuItem value="On Hold">On Hold</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" className="min-w-[150px]">
+            <InputLabel>Sort By</InputLabel>
+            <Select
+              value={sortOption}
+              label="Sort By"
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <MenuItem value="date">Date Created</MenuItem>
+              <MenuItem value="name">Name</MenuItem>
+              <MenuItem value="status">Status</MenuItem>
+              <MenuItem value="manager">Manager</MenuItem>
+            </Select>
+          </FormControl>
+
+          {hasRole(["Admin", "Project Manager"]) && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenCreateDialog(true)}
+            >
+              Create New Project
+            </Button>
+          )}
+        </div>
       </div>
 
-   
+  
       {error && (
         <Alert
           severity="error"
@@ -148,14 +224,13 @@ function ProjectListPage() {
         </Alert>
       )}
 
-    
-      {projects.length === 0 ? (
+      {filteredProjects.length === 0 ? (
         <p className="text-gray-600">
-          No projects available. Create one to get started!
+          No matching projects found. Try adjusting filters or create one!
         </p>
       ) : (
         <>
-          
+          {/* 💻 Table View */}
           <div className="hidden md:block overflow-x-auto rounded-lg shadow-sm border border-gray-200">
             <table className="min-w-full text-sm text-left text-gray-700">
               <thead className="bg-gray-100 text-gray-900 font-medium">
@@ -169,7 +244,7 @@ function ProjectListPage() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map((project) => (
+                {filteredProjects.map((project) => (
                   <tr
                     key={project._id}
                     className="border-t hover:bg-gray-50 transition-colors"
@@ -185,8 +260,6 @@ function ProjectListPage() {
                     <td className="px-4 py-3">
                       {new Date(project.createdAt).toLocaleDateString()}
                     </td>
-
-                  
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end items-center gap-2">
                         <Tooltip title="View Project">
@@ -217,7 +290,8 @@ function ProjectListPage() {
                                   sx={{
                                     backgroundColor: "rgba(156,39,176,0.08)",
                                     "&:hover": {
-                                      backgroundColor: "rgba(156,39,176,0.15)",
+                                      backgroundColor:
+                                        "rgba(156,39,176,0.15)",
                                     },
                                   }}
                                 >
@@ -234,7 +308,8 @@ function ProjectListPage() {
                                   sx={{
                                     backgroundColor: "rgba(211,47,47,0.08)",
                                     "&:hover": {
-                                      backgroundColor: "rgba(211,47,47,0.15)",
+                                      backgroundColor:
+                                        "rgba(211,47,47,0.15)",
                                     },
                                   }}
                                 >
@@ -251,9 +326,9 @@ function ProjectListPage() {
             </table>
           </div>
 
-   
+         
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <div
                 key={project._id}
                 className="border border-gray-200 rounded-xl shadow-sm p-4 bg-white hover:shadow-md transition-all"
@@ -333,8 +408,7 @@ function ProjectListPage() {
                   </span>
                 </p>
                 <p className="text-gray-400 text-xs">
-                  Created:{" "}
-                  {new Date(project.createdAt).toLocaleDateString()}
+                  Created: {new Date(project.createdAt).toLocaleDateString()}
                 </p>
               </div>
             ))}
@@ -342,6 +416,7 @@ function ProjectListPage() {
         </>
       )}
 
+     
       <Dialog
         open={openCreateDialog}
         onClose={() => {
