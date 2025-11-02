@@ -84,20 +84,35 @@ function DashboardPage() {
     }
   };
 
+  // 🎯 Dynamic labels based on role
+  const role = user?.role?.toLowerCase();
+  const projectLabel =
+    role === "admin"
+      ? "All Projects"
+      : role === "projectmanager"
+      ? "Projects"
+      : "Your Projects";
+  const taskLabel =
+    role === "admin"
+      ? "All Tasks"
+      : role === "projectmanager"
+      ? "Tasks"
+      : "Your Tasks";
+
   return (
     <Box className="p-4 md:p-8 bg-gray-50 min-h-screen">
-     
+      {/* Header */}
       <Box className="mb-8 text-center md:text-left">
         <Typography variant="h4" className="font-semibold text-gray-800 mb-2">
-          Welcome back, {user?.name}! 
+          Welcome back, {user?.name}!
         </Typography>
         <Typography variant="subtitle1" className="text-gray-600">
           Here’s a quick overview of your projects, tasks, and team activity.
         </Typography>
       </Box>
 
+      {/* Overview cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-     
         <Card
           onClick={() => navigate("/projects")}
           className="shadow-md rounded-2xl cursor-pointer hover:shadow-xl transition border-l-4 border-blue-500"
@@ -144,6 +159,7 @@ function DashboardPage() {
         </Card>
       </div>
 
+      {/* Recent Activity */}
       <Box className="mb-12">
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
           Recent Team Activity
@@ -179,9 +195,10 @@ function DashboardPage() {
         )}
       </Box>
 
+      {/* Projects Section */}
       <Box className="mb-12">
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
-          📁 Your Projects
+          📁 {projectLabel}
         </Typography>
         {projectsSummary?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -204,9 +221,7 @@ function DashboardPage() {
                     </Typography>
                     <Chip
                       label={project.status}
-                      className={`${getStatusColor(
-                        project.status
-                      )} text-xs px-2 py-1`}
+                      className={`${getStatusColor(project.status)} text-xs px-2 py-1`}
                     />
                   </div>
                 </CardContent>
@@ -215,14 +230,15 @@ function DashboardPage() {
           </div>
         ) : (
           <Typography className="text-gray-600 mt-2">
-            You’re not assigned to any projects yet.
+            No projects available.
           </Typography>
         )}
       </Box>
 
+      {/* Tasks Section */}
       <Box>
         <Typography variant="h5" className="font-semibold text-gray-800 mb-4">
-          ✅ Your Tasks
+          ✅ {taskLabel}
         </Typography>
         {tasksSummary?.length > 0 ? (
           <List className="bg-white rounded-xl shadow-md divide-y">
@@ -239,18 +255,13 @@ function DashboardPage() {
                     >
                       {task.title}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      className="text-gray-600 mt-1"
-                    >
+                    <Typography variant="body2" className="text-gray-600 mt-1">
                       {task.projectName && `Project: ${task.projectName}`}
                     </Typography>
                   </div>
                   <Chip
                     label={task.status}
-                    className={`${getStatusColor(
-                      task.status
-                    )} mt-2 sm:mt-0 text-xs px-2 py-1`}
+                    className={`${getStatusColor(task.status)} mt-2 sm:mt-0 text-xs px-2 py-1`}
                   />
                 </div>
               </ListItem>
@@ -258,7 +269,7 @@ function DashboardPage() {
           </List>
         ) : (
           <Typography className="text-gray-600 mt-2">
-            You currently have no active tasks.
+            No tasks available.
           </Typography>
         )}
       </Box>

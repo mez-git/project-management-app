@@ -204,7 +204,6 @@ function ProjectDetailsPage() {
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
-  
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
           {project.name}
@@ -220,7 +219,6 @@ function ProjectDetailsPage() {
         )}
       </div>
 
-  
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-700">
@@ -257,7 +255,6 @@ function ProjectDetailsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 md:p-6">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold text-gray-700">
@@ -375,7 +372,6 @@ function ProjectDetailsPage() {
         </div>
       </div>
 
-      {/* Activity Logs */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Activity Logs</h2>
@@ -408,7 +404,7 @@ function ProjectDetailsPage() {
         )}
       </div>
 
-      {/* Task Dialog */}
+
       <Dialog
         open={openTaskDialog}
         onClose={() => setOpenTaskDialog(false)}
@@ -517,13 +513,14 @@ function ProjectDetailsPage() {
           <Autocomplete
             options={allUsers.filter(
               (u) =>
+                u.role === "Team Member" &&
                 !project.teamMembers.some((m) => m._id === u._id) &&
                 u._id !== project.projectManager?._id
             )}
             getOptionLabel={(o) => (o.name ? `${o.name} (${o.email})` : "")}
             onChange={(e, newVal) => setSelectedMember(newVal)}
             renderInput={(params) => (
-              <TextField {...params} label="Select User" fullWidth />
+              <TextField {...params} label="Select Team Member" fullWidth />
             )}
           />
         </DialogContent>
