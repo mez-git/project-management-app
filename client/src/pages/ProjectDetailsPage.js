@@ -41,6 +41,7 @@ function ProjectDetailsPage() {
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [savingTask, setSavingTask] = useState(false);
 
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
@@ -123,6 +124,7 @@ function ProjectDetailsPage() {
   };
 
   const handleSaveTask = async () => {
+    setSavingTask(true);
     try {
       if (currentTask) {
         await authApi.put(`/tasks/${currentTask._id}`, newTask);
@@ -136,6 +138,8 @@ function ProjectDetailsPage() {
         err.response?.data?.error ||
           `Failed to ${currentTask ? "update" : "create"} task.`
       );
+    } finally {
+      setSavingTask(false);
     }
   };
 
@@ -404,7 +408,6 @@ function ProjectDetailsPage() {
         )}
       </div>
 
-
       <Dialog
         open={openTaskDialog}
         onClose={() => setOpenTaskDialog(false)}
@@ -495,13 +498,28 @@ function ProjectDetailsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenTaskDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveTask}>
-            {currentTask ? "Update" : "Create"}
+          <Button
+            variant="contained"
+            onClick={handleSaveTask}
+            disabled={savingTask}
+            startIcon={
+              savingTask ? (
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+              ) : null
+            }
+          >
+            {savingTask
+              ? currentTask
+                ? "Updating..."
+                : "Creating..."
+              : currentTask
+              ? "Update"
+              : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Add Member Dialog */}
+   
       <Dialog
         open={openAddMemberDialog}
         onClose={() => setOpenAddMemberDialog(false)}

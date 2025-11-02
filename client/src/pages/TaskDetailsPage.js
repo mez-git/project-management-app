@@ -27,7 +27,7 @@ function TaskDetailsPage() {
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState({});
-
+const [savingTask, setSavingTask] = useState(false);
   useEffect(() => {
     fetchTaskDetails();
   }, [id, authApi, user]);
@@ -53,16 +53,19 @@ function TaskDetailsPage() {
       setLoading(false);
     }
   };
+const handleUpdateTask = async () => {
+  setSavingTask(true);
+  try {
+    await authApi.put(`/tasks/${id}`, editedTask);
+    setIsEditing(false);
+    fetchTaskDetails();
+  } catch (err) {
+    setError(err.response?.data?.error || "Failed to update task.");
+  } finally {
+    setSavingTask(false);
+  }
+};
 
-  const handleUpdateTask = async () => {
-    try {
-      await authApi.put(`/tasks/${id}`, editedTask);
-      setIsEditing(false);
-      fetchTaskDetails();
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to update task.");
-    }
-  };
 
   if (loading) {
     return (
@@ -105,15 +108,27 @@ function TaskDetailsPage() {
         </Typography>
 
         {canEdit && (
-          <Button
-            variant={isEditing ? "contained" : "outlined"}
-            color="primary"
-            startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-            onClick={isEditing ? handleUpdateTask : () => setIsEditing(true)}
-            className="transition duration-200 hover:scale-[1.02]"
-          >
-            {isEditing ? "Save Changes" : "Edit Task"}
-          </Button>
+      <Button
+  variant={isEditing ? "contained" : "outlined"}
+  color="primary"
+  onClick={isEditing ? handleUpdateTask : () => setIsEditing(true)}
+  disabled={savingTask}
+  startIcon={
+    isEditing
+      ? savingTask
+        ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+        : <SaveIcon />
+      : <EditIcon />
+  }
+  className="transition duration-200 hover:scale-[1.02]"
+>
+  {isEditing
+    ? savingTask
+      ? "Saving..."
+      : "Save Changes"
+    : "Edit Task"}
+</Button>
+
         )}
       </Box>
 
